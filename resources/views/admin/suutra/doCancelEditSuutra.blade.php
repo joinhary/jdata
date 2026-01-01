@@ -1,0 +1,953 @@
+@extends('admin/layouts/default')
+@php
+    $role = Sentinel::check()->user_roles()->first()->slug;
+    $vp=\App\Models\NhanVienModel::find(Sentinel::getUser()->id)->nv_vanphong;
+@endphp
+@section('title')
+    Sửa hồ sơ giao dịch @parent
+@stop
+@section('header_styles')
+    <style>
+        .qksao {
+            font-weight: bold;
+            color: red;
+        }
+
+        .qkbtn {
+            font-weight: bold;
+            font-size: 14px !important;
+        }
+
+        .nqkright {
+            text-align: right !important;
+            font-size: 14px !important;
+            font-weight: 500;
+        }
+    </style>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
+@stop
+@section('content')
+    <section class="content">
+      @php
+$user = Sentinel::check();
+
+$role = null;
+$id_vp = null;
+$sync_code = null;
+
+if ($user) {
+    $role = optional($user->user_roles()->first())->slug;
+
+    $nhanvien = \App\Models\NhanVienModel::find($user->id);
+    if ($nhanvien) {
+        $id_vp = $nhanvien->nv_vanphong;
+
+        $chinhanh = \App\Models\ChiNhanhModel::find($id_vp);
+        if ($chinhanh) {
+            $sync_code = $chinhanh->code_cn;
+        }
+    }
+}
+@endphp
+
+        <form action="{{ route('updateSuutra',['id'=>$data->st_id]) }}" method="post" enctype="multipart/form-data">
+            @csrf
+            <div class="row bctk-scrollable-list" style="overflow-x: hidden; height: calc(100vh - 100px); ">
+                <div class="col-sm-12">
+                    @if($role == "ke-toan")
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="col-md-6">
+                                    <label for="thu_lao">Thù Lao: </label>
+                                    <div class="input-group">
+                                        <input type="text" value="{{$data->thu_lao}}" disabled id="thulao"
+                                               class="form-control">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"
+                                                  style="padding-bottom: 0px;padding-top: 0px;">vnđ</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="phi_cong_chung">Thù Lao mới: </label>
+                                    <div class="input-group">
+                                        <input type="text" value="{{old('thu_lao')}}" class="form-control"
+                                               placeholder="0"
+                                               id="thu_lao" name="thu_lao">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"
+                                                  style="padding-bottom: 0px;padding-top: 0px;">vnđ</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="thu_lao">Phí công chứng: </label>
+                                    <div class="input-group">
+                                        <input value="{{$data->phi_cong_chung}}" disabled class="form-control"
+                                               id="phicongchung">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"
+                                                  style="padding-bottom: 0px;padding-top: 0px;">vnđ</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="phi_cong_chung">Phí công chứng mới: </label>
+                                    <div class="input-group">
+                                        <input type="text" value="{{ old('phi_cong_chung') }}" id="phi_cong_chung"
+                                               placeholder="0"
+                                               name="phi_cong_chung" class="form-control">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"
+                                                  style="padding-bottom: 0px;padding-top: 0px;">vnđ</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <label style="color: red">Lưu ý: Giá này sẽ ảnh hưởng trực tiếp đến quá trình báo
+                                        cáo!</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4" style="text-align: center;margin-top: 5%">
+                                <a href="javascript:history.back()" type="cancel"
+                                   class="btn btn-secondary qkbtn">Hủy</a>
+                                <button type="submit" class="btn btn-primary qkbtn">Lưu</button>
+                            </div>
+                        </div>
+                    @endif
+                    @if($role=='admin' || $role=='chuyen-vien-so' )
+                        <div class="form-group col-md-12">
+                            <label class="col-lg-4 col-form-label nqkright">
+                                <div class="col-lg-12">
+                                    Tên công văn: (<span class="text-danger qksao">*</span>)
+                                </div>
+                            </label>
+                            <div class="col-lg-8">
+                                <input type="text" value="{{$data->ten_hd}}" id="ten" name="ten" class="form-control"
+           >
+                            </div>
+                        </div>
+                    @else
+                   
+                        <div class="form-group col-md-12">
+                            <label class="col-lg-4 col-form-label nqkright">
+                                <div class="col-lg-12">
+                                    Tên công văn: (<span class="text-danger qksao">*</span>)
+                                </div>
+                            </label>
+                             <div class="col-lg-8">
+                                <input type="text" value="{{$data->ten_hd}}" id="ten" name="ten" class="form-control" disabled >
+                            </div>
+                        </div>
+                    @endif
+{{--                        {{ dd(intval($data->vanban)) }}--}}
+                    <div class="form-group col-md-12">
+                        <label class="col-lg-4 col-form-label nqkright">
+                            <div class="col-lg-12">
+                                Công chứng viên: (<span class="text-danger qksao">*</span>)
+                            </div>
+                        </label>
+					<div class="col-lg-8">
+                            <input type="text" id="ccv_master" name="ccv_master" class="form-control"
+                                   value="{{$data->ccv_master}}"
+                                   disabled>
+                        </div>
+                    </div>
+					<div class="form-group col-md-12">
+                        <label class="col-lg-4 col-form-label nqkright">
+                            <div class="col-lg-12">
+                                Chuyên viên: (<span class="text-danger qksao">*</span>)
+                            </div>
+                        </label>
+					<div class="col-lg-8">
+                            <input type="text" id="cv_name" name="cv_name" class="form-control"
+                                   value="{{$data->cv_name}}"
+                                   disabled>
+                        </div>
+                    </div>
+                    <div class="form-group col-md-12">
+                        <label class="col-lg-4 col-form-label nqkright">
+                            <div class="col-lg-12">
+                                Số công văn: (<span class="text-danger qksao">*</span>)
+                            </div>
+                        </label>
+                        <div class="col-lg-8">
+                            <input type="text" id="so_hd" name="so_hd" class="form-control"
+                                   placeholder="Nhập số hợp đồng ..." disabled value="{{$data->so_hd}}"
+                                   @if($role=="ke-toan") disabled @endif required>
+                        </div>
+                    </div>
+                    <div class="form-group col-md-12">
+                        <label class="col-lg-4 col-form-label nqkright">
+                            <div class="col-lg-12">
+                                Ngày công chứng: (<span class="text-danger qksao">*</span>)
+                            </div>
+                        </label>
+                        <div class="col-lg-8">
+                            <input type="date" id="ngay_cc" value="{{ $data->ngay_cc }}" name="ngay_cc"
+                                   class="form-control"  disabled required>
+                        </div>
+                    </div>
+                    <div class="form-group col-md-12">
+                        <label class="col-lg-4 col-form-label">
+                            <div class="col-lg-12">
+                                <div class="col-lg-12 nqkright">
+                                    Các bên liên quan: (<span class="text-danger qksao">*</span>)
+                                </div>
+                            </div>
+                        </label>
+                        <div class="col-lg-8">
+                            <textarea type="text" id="duongsu" name="duongsu"
+                                      class="form-control mt-3" rows="7" cols="50"
+									  disabled
+                                      required>{!! $data->duong_su !!}</textarea>
+                        </div>
+                    </div>
+                    <div class="form-group col-md-12">
+                        <label class="col-lg-4 col-form-label">
+                            <div class="col-lg-12">
+                                <div class="col-lg-12 nqkright">
+                                    Nội dung công văn: (<span class="text-danger qksao">*</span>)
+                                </div>
+                                
+                            </div>
+                        </label>
+                        <div class="col-lg-8">
+                            <textarea type="text" id="noidung" name="noidung" class="form-control mt-3" rows="7"
+                                      cols="50" disabled required>{!! $data->texte !!}</textarea>
+                        </div>
+                    </div>
+					@if($data->contract_period)
+					<div class="form-group col-md-12">
+                        <label class="col-lg-4 col-form-label">
+                            <div class="col-lg-12">
+                                <div class="col-lg-12 nqkright">
+                                    Thời hạn: (<span class="text-danger qksao">*</span>)
+                                </div>
+                                
+                            </div>
+                        </label>
+                        <div class="col-lg-8">
+                           <input type="date" id="contract_period" value="{{ $data->contract_period }}" name="contract_period"
+                                   class="form-control"  disabled required>
+                        </div>
+                    </div>
+					@endif
+					@if($data->undisputed_date)
+					<div class="form-group col-md-12">
+                        <label class="col-lg-4 col-form-label">
+                            <div class="col-lg-12">
+                                <div class="col-lg-12 nqkright">
+                                    Ngày giải chấp: (<span class="text-danger qksao">*</span>)
+                                </div>
+                                
+                            </div>
+                        </label>
+                        <div class="col-lg-8">
+                          <input type="date" id="undisputed_date" value="{{ $data->undisputed_date }}" name="undisputed_date"
+                                   class="form-control"  disabled required>
+                        </div>
+                    </div>
+					@endif
+					
+					@if($data->undisputed_note)
+					<div class="form-group col-md-12">
+                        <label class="col-lg-4 col-form-label">
+                            <div class="col-lg-12">
+                                <div class="col-lg-12 nqkright">
+                                    Ghi chú giải chấp: (<span class="text-danger qksao">*</span>)
+                                </div>
+                                
+                            </div>
+                        </label>
+                        <div class="col-lg-8">
+                            <input type="text" id="undisputed_note" value="{{ $data->undisputed_note }}" name="undisputed_note"
+                                   class="form-control"  disabled required>
+                        </div>
+                    </div>
+					@endif
+					@if($data->bank_id)
+					<div class="form-group col-md-12" >
+                        <label class="col-lg-4 col-form-label">
+                            <div class="col-lg-12">
+                                <div class="col-lg-12 nqkright">
+                                    Ngân hàng: (<span class="text-danger qksao">*</span>)
+                                </div>
+                                
+                            </div>
+                        </label>
+                        <div class="col-lg-8">
+                                                           {!! \App\Helpers\Form::select('bank',$bank,$data->bank_id,['id'=>'bank','class'=>'form-control sel ','disabled']) !!}
+
+                        </div>
+                    </div>
+					@endif
+                    <div class="form-group col-md-12" hidden>
+                        <label class="col-lg-4 col-form-label nqkright">
+                            <div class="col-lg-12">Loại:</div>
+                        </label>
+                        <div class="col-lg-8">
+		
+                            <input type="radio" name="loai" value="0" id="thuong" @if($data->ngan_chan==0) checked @endif > Thường
+                            @if($role=='chuyen-vien-so' || $role=='admin')
+                                <input type="radio" name="loai" value="3" id="nganchan" @if($data->ngan_chan==3) checked @endif > Ngăn chặn
+                            @endif
+                            @if($role == 'truong-van-phong'|| $role=='cong-chung-vien' || $role == 'chuyen-vien' || $role == 'phong-khac')
+                                <input type="radio" name="loai" value="2" id="canhbao" @if($data->ngan_chan==2) checked @endif> Cảnh báo
+                            @endif
+                           
+                            <div class="col-md-12" id="description">
+                            </div>
+                        </div>
+                    </div>
+					
+		
+                        <div class="form-group col-md-12">
+                            <label class="col-lg-4 col-form-label nqkright"></label>
+                            <div class="col-lg-8">
+							@if(($role=='truong-van-phong'||$role == 'ke-toan'||$role=='cong-chung-vien' )&& $data->sync_code == $sync_code)
+								<a type="button" class="btn btn-primary qkbtn" href="{{ route('editSuutra',['id' => $data->st_id]) }}">Chỉnh sửa</button>
+                            @endif
+							<!-- @if(stristr($data->ten_hd, "thế chấp") || stristr($data->ten_hd, "cầm cố")||$data->loai==3)
+								<a type="button" class="btn btn-primary qkbtn" href="{{ route('giaiChapSuutra',['id' => $data->st_id]) }}">Giải chấp</button>
+							@endif -->
+                            <a type="button" class="btn btn-primary qkbtn" href="{{ route('giaiChapSuutra',['id' => $data->st_id]) }}">Giải chấp</button>
+
+							<a type="button" class="btn btn-primary qkbtn" href="{{ route('createAppendix',['id' => $data->st_id,'kieu'=>'12']) }}">Huỷ hợp đồng</button>
+                                <a type="button" class="btn btn-primary qkbtn" href="{{ route('createAppendix',['id' => $data->st_id,'kieu'=>'']) }}">Tạo phụ lục</button>
+                            @if($data->deleted_note==null&&$role=='truong-van-phong' && $vp !== "2190")
+								<a type="button" class="btn btn-danger qkbtn" href="{{ route('deleteSuutra',$data->st_id) }}">Xoá</button>
+							@endif
+								<a href="javascript:history.back()" type="cancel"
+                                   class="btn btn-secondary qkbtn">Quay lại danh sách</a>
+								   
+                            </div>
+                        </div>
+                </div>
+            </div>
+        </form>
+        <!-- Modal show thêm đương sự-->
+        <div class="modal fade" id="create-customer" role="dialog" aria-labelledby="modalLabelinfo">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header" style="background-color: #1a67a3 !important;">
+                        <h4 class="modal-title qkmodel" id="modalLabelinfo">Chọn kiểu đương sự</h4>
+                    </div>
+                    <div class="modal-body" style="background-color: #f7f7f7;color: black">
+                        <div id="treeview-expandible" class="">
+                            <table class="table-bordered ">
+                                @foreach($kieuDS as $item)
+                                    @php
+                                        $k_id = $item->k_id;
+                                        $tm = \App\Models\KieuModel::select('k_tieumuc')->where('k_id', $k_id)->first();
+                                        $tm_arr = explode(' ', $tm->k_tieumuc);
+                                        $tieumuc = \App\Models\TieuMucModel::select('tieumuc.tm_id', 'tm_nhan', 'tm_loai', 'tm_keywords', 'tm_batbuoc')
+                                                ->leftjoin('tieumuc_sapxep', 'tieumuc_sapxep.tm_id', '=', 'tieumuc.tm_id')
+                                                ->whereIn('tieumuc.tm_id', $tm_arr)
+                                                ->where('k_id', $k_id)
+                                                ->orderBy('tm_sort', 'asc')->get();
+                                    @endphp
+                                    <thead>
+                                    <tr class="text-center" style="background-color:#eeeeee">
+                                        <th>{{ $item->k_nhan }}</th>
+                                        <th>
+                                            <a href="#" class="btn btn-primary mb-0"
+                                               data-toggle="modal" data-target="#modal-honphoi{{ $item->k_id }}">
+                                                Tiếp tục
+                                            </a>
+                                        </th>
+                                    </tr>
+                                    </thead>
+                                    <div class="modal fade in" id="modal-honphoi{{ $item->k_id }}" tabindex="-1"
+                                         role="dialog" aria-hidden="false">
+                                        <div class="modal-dialog modal-xl">
+                                            <div class="modal-content">
+                                                <div class="modal-header qkmodel"
+                                                     style="background-color: #1a67a3 !important;">
+                                                    <h4 class="modal-title qkmodel"
+                                                        style="background-color: #1a67a3 !important;">
+                                                        Thêm mới khách hàng <span id="main-ds"></span>
+                                                    </h4>
+                                                </div>
+                                                <div class="modal-body" style="background-color: #f7f7f7;color: black">
+                                                    <form id="form-honphoi">
+                                                        @csrf
+                                                        <div class="row">
+                                                            @foreach($tieumuc as $tm)
+                                                                <div class="col-md-3 {{$tm->tm_keywords == 'tinh-trang-hon-nhan' ? 'hidden' : ''}}">
+                                                                    <div class="form-group">
+                                                                        <label class="text-bold"
+                                                                               for="modal-ele-{{$tm->tm_keywords}}">{{$tm->tm_nhan}}
+                                                                            :</label>
+                                                                        <input type="text" name="ds_tm[]"
+                                                                               value="tm-{{$tm->tm_id}}" hidden>
+                                                                        @if($tm->tm_loai == "text")
+                                                                            <input id="modal-ele-{{$tm->tm_keywords}}"
+                                                                                   type="text" name="tm-{{$tm->tm_id}}"
+                                                                                   class="form-control"
+                                                                                   @if($tm->tm_batbuoc == 1) required @endif>
+                                                                        @elseif($tm->tm_loai == "select")
+                                                                            <?php
+                                                                            $select = \App\Models\KieuTieuMucModel::where('tm_id',
+                                                                                $tm->tm_id)
+                                                                                ->where('ktm_status', 1)
+                                                                                ->pluck('ktm_traloi', 'ktm_id');
+                                                                            ?>
+                                                                            {!! \App\Helpers\Form::select('tm-'.$tm->tm_id,$select,'',['class'=>'form-control','id'=>'modal-ele-'.$tm->tm_keywords,'onchange'=>'change_tm(this,\'in-modal\')']) !!}
+                                                                        @elseif($tm->tm_loai == 'file')
+                                                                            <input id="{{$tm->tm_keywords}}"
+                                                                                   name="tm-{{$tm->tm_id}}[]"
+                                                                                   type="file" accept="image/*"
+                                                                                   class="form-control"
+                                                                                   onchange="img(this)"
+                                                                                   @if($tm->tm_batbuoc == 1) required
+                                                                                   @endif multiple/>
+                                                                            <div class="col-md-12 text-center row-image"
+                                                                                 style="background-color: #fff !important; height: 80px"
+                                                                                 id="img-{{$tm->tm_keywords}}"></div>
+                                                                        @else
+                                                                            <input type="text"
+                                                                                   id="modal-ele-{{$tm->tm_keywords}}"
+                                                                                   class="form-control"
+                                                                                   name="tm-{{$tm->tm_id}}"
+                                                                                   data-mask="99/99/9999"
+                                                                                   placeholder="Ngày / tháng / năm"
+                                                                                   @if($tm->tm_batbuoc == 1) required @endif>
+                                                                        @endif
+                                                                    </div>
+                                                                </div>
+                                                            @endforeach
+                                                        </div>
+                                                        <div class="row">
+                                                            <hr>
+                                                        </div>
+                                                        <div class="row">
+                                                            <div hidden class="col-md-4 col-xs-12">
+                                                                <div class="form-group row">
+                                                                    <label class="text-bold" for="pic">Ảnh đại
+                                                                        diện:</label><br>
+                                                                    <div class="fileinput fileinput-new"
+                                                                         data-provides="fileinput">
+                                                                        <div class="fileinput-new thumbnail"
+                                                                             style="width: 220px; height: 220px;">
+                                                                            <img src="{{url('/images/new-user.png')}}"
+                                                                                 alt="profile pic">
+                                                                        </div>
+                                                                        <div
+                                                                                class="fileinput-preview fileinput-exists thumbnail"
+                                                                                style="max-width: 250px; max-height: 250px;"></div>
+                                                                        <div>
+                                                                            <span class="btn btn-primary btn-file">
+                                                                                <span
+                                                                                        class="fileinput-new">Chọn ảnh</span>
+                                                                                <span
+                                                                                        class="fileinput-exists">Thay đổi</span>
+                                                                                <input id="modal-ele-pic" name="pic"
+                                                                                       type="file"
+                                                                                       class="form-control"/>
+                                                                            </span>
+                                                                            <a href="#"
+                                                                               class="btn btn-danger fileinput-exists"
+                                                                               data-dismiss="fileinput">Gỡ bỏ</a>
+                                                                        </div>
+                                                                    </div>
+                                                                    <span
+                                                                            class="help-block">{{ $errors->first('pic_file', ':message') }}</span>
+                                                                </div>
+                                                            </div>
+                                                            <div hidden class="col-md-8 col-xs-12">
+                                                                <div class="form-group row">
+                                                                    <label class="text-bold" for="modal-ele-username">Tài
+                                                                        khoản:</label>
+                                                                    <input type="text" id="modal-ele-username"
+                                                                           class="form-control" name="username"
+                                                                           required>
+                                                                </div>
+                                                                <div class="form-group row">
+                                                                    <label class="text-bold" for="modal-ele-password">Mật
+                                                                        khẩu:</label>
+                                                                    <input type="text" id="modal-ele-password"
+                                                                           class="form-control password-validate"
+                                                                           name="password" required>
+                                                                    <span id="modal-ele-valid-password"
+                                                                          class="text-small text-danger pl-1 pt-1"></span>
+                                                                </div>
+                                                                <div class="form-group row">
+                                                                    <label class="text-bold" for="modal-ele-first_name">Nhãn:</label>
+                                                                    <input type="text" id="modal-ele-first_name"
+                                                                           class="form-control" name="first_name"
+                                                                           required>
+                                                                    <span id="modal-ele-valid-first_name"
+                                                                          class="text-small text-danger pl-1 pt-1"></span>
+                                                                </div>
+                                                                <input type="text" id="modal-ele-contact" name="contact"
+                                                                       hidden>
+                                                                <input type="text" id="modal-ele-contact" name="kieu"
+                                                                       value="{{$k_id}}" hidden>
+                                                            </div>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                                <div class="modal-footer"
+                                                     style="background-color: #f7f7f7;color: black">
+                                                    <button type="button" data-dismiss="modal"
+                                                            class="btn btn-warning qkbtn">Hủy
+                                                    </button>
+                                                    <a href="javascript:void(0)" id="submit-honphoi"
+                                                       class="btn btn-primary qkbtn"
+                                                       onclick="submitHonPhoi({{ $item->k_id }})">Lưu</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- modal thêm tài sản -->
+    </section>
+@stop
+@section('footer_scripts')
+    <script src="{{ asset('assets/js/imgPreview.js') }}"></script>
+    <script src="{{ asset('assets/js/jquery.mark.js') }}"></script>
+    <script src="http://johannburkard.de/resources/Johann/jquery.highlight-5.js"></script>
+    {{-- <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script> --}}
+    <script src="{{ asset('assets/vendors/select2/js/select2.js') }}"></script>
+
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script>
+        function submitHonPhoi(id) {
+            $(`#modal-honphoi${id}`).modal('hide');
+            $('#create-customer').modal('hide');
+            var dataForm = new FormData($('#form-honphoi')[0]);
+            $.ajax({
+                url: "{{route('storeKhachHang')}}",
+                type: 'post',
+                processData: false,
+                contentType: false,
+                data: dataForm,
+                success: function (res) {
+                    console.log(res)
+                    if (res.status === 'success') {
+                        msgSuccess(res.message);
+                    } else {
+                        $.each(res.message, function (k, v) {
+                            msgError(v);
+                        })
+                    }
+                }
+            })
+        }
+
+        $('#modal-ele-giay-to-tuy-than-so').focusout(function () {
+            var so_dinh_danh = $(this).val();
+            if (so_dinh_danh) {
+                $.ajax({
+                    url: "{{route('validCMND')}}",
+                    type: "GET",
+                    data: 'kh_giatri=' + so_dinh_danh,
+                    success: function (err) {
+                        $('#modal-ele-giay-to-tuy-than-so').tooltip({
+                            title: err.message,
+                            placement: 'bottom',
+                            trigger: 'manual'
+                        });
+                        if (err.status === 'error') {
+                            $('#modal-ele-giay-to-tuy-than-so').css('border', '1px solid red');
+                            $('#modal-ele-giay-to-tuy-than-so').tooltip('show');
+                        } else {
+                            $('#modal-ele-giay-to-tuy-than-so').removeAttr('style', 'border');
+                            $('#modal-ele-giay-to-tuy-than-so').tooltip('hide');
+                        }
+                    }
+                });
+            }
+            if ($('#modal-ele-ho-duong-su').val() !== '' && $('#modal-ele-ten-duong-su').val() !== '') {
+                var first_name = $('#modal-ele-ho-duong-su').val() + ' ' + $('#modal-ele-ten-duong-su').val() + ' ' + $(this).val();
+                $('#modal-ele-first_name').val(first_name);
+            }
+            $('#modal-ele-username').val($(this).val());
+            $('#modal-ele-password').val(Math.floor(Math.random() * 999999) + 100000);
+        });
+
+        $('input:required').focusout(function () {
+            $('#' + $(this).attr('id')).tooltip({
+                title: 'Vui lòng không để trống!',
+                placement: 'bottom',
+                trigger: 'manual'
+            });
+            if (!$(this).val()) {
+                $(this).css('border', '1px solid red');
+                $('#' + $(this).attr('id')).tooltip("show");
+            } else {
+                $(this).removeAttr('style', 'border');
+                $('#' + $(this).attr('id')).tooltip("hide");
+            }
+        });
+
+        $('#dien-thoai').focusout(function () {
+            $('#contact').val($(this).val());
+        });
+
+        function closeSelf() {
+            self.close();
+            return true;
+        }
+
+        $('#modal-ele-dien-thoai').focusout(function () {
+            $('#modal-ele-contact').val($(this).val());
+        });
+    </script>
+    <script>
+        $(function () {
+            $("#thu_lao").keyup(function (e) {
+                $(this).val(format($(this).val()));
+            });
+            $("#phi_cong_chung").keyup(function (e) {
+                $(this).val(format($(this).val()));
+            });
+            $("#thulao").val(format($("#thulao").val()));
+            $("#phicongchung").val(format($("#phicongchung").val()));
+        });
+        var format = function (num) {
+            var str = num.toString().replace("", ""), parts = false, output = [], i = 1, formatted = null;
+            if (str.indexOf(".") > 0) {
+                parts = str.split(".");
+                str = parts[0];
+            }
+            str = str.split("").reverse();
+            for (var j = 0, len = str.length; j < len; j++) {
+                if (str[j] != ",") {
+                    output.push(str[j]);
+                    if (i % 3 == 0 && j < (len - 1)) {
+                        output.push(",");
+                    }
+                    i++;
+                }
+            }
+            formatted = output.reverse().join("");
+            return ("" + formatted + ((parts) ? "." + parts[1].substr(0, 2) : ""));
+        };
+    </script>
+    <script>
+        $(document).ready(function () {
+            $('#nganchan').change(function () {
+                $('#description').append('<label id="nganchanboi">Ngăn chặn bởi: </label>',
+                    '<input class="form-control" placeholder="Ngăn chặn bởi hợp đồng số..." id="cancel_description" name="description" type="text" >');
+            });
+            $('#giaitoa').change(function () {
+                $('#labelnganchan').remove();
+                $('#nganchanboi').remove();
+                $('#cancel_description').remove();
+            });
+            $('#canhbao').change(function () {
+                $('#labelnganchan').remove();
+                $('#nganchanboi').remove();
+                $('#cancel_description').remove();
+            });
+        });
+    </script>
+    <script>
+        $('.sel').select2();
+        $(document).ready(function () {
+            $("#kieuhd").change(function () {
+                $.ajax({
+                    url: "{{ route('listVanban') }}",
+                    data: {
+                        id: $('#kieuhd').val()
+                    },
+                    success: function (data) {
+                        $("#ten").empty();
+                        data.map(function (val) {
+                            if (val == null)
+                                $("#ten").empty();
+                            else
+                                $("#ten").append(new Option(val.vb_nhan, val.vb_id));
+                        });
+                        $("#ten").select2({
+                            allowClear: true
+                        });
+                    }
+                });
+            });
+        });
+        $(function () {
+            $("#ngay_cc").datepicker();
+        });
+    </script>
+    <script>
+        $(document).ready(function () {
+            $("#kieuhd").change(function () {
+                $.ajax({
+                    url: "{{ route('listVanban') }}",
+                    data: {
+                        id: $('#kieuhd').val()
+                    },
+                    success: function (data) {
+                        $("#vanban").empty();
+                        data.map(function (val) {
+                            if (val == null)
+                                $("#vanban").empty();
+                            else
+                                $("#vanban").append(new Option(val.vb_nhan, val.vb_id + '.$.' + val.vb_nhan));
+                        });
+                        $("#vanban").select2({
+                            allowClear: true
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+    <script>
+        // -------------------------------------- Tài sản --------------------------------------
+        var selectedTaiSan = [];
+
+        function taiSanResultTemplater(option) {
+            let duplicated = false;
+            selectedTaiSan.forEach((obj) => {
+                if (obj.id == option.id) {
+                    duplicated = true;
+                }
+            });
+            if (duplicated) {
+                return null;
+            }
+            return option.text;
+        }
+
+        $("#tai-san").select2({
+            ajax: {
+                url: "{{ url('taisan/search') }}",
+                method: "GET",
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                    return {
+                        keyword: params.term
+                    };
+                },
+                processResults: function (data) {
+                    return {
+                        // results: data.data
+                        results: $.map(data.data, function (item) {
+                            item.id = item.ts_id;
+                            item.text = item.ts_nhan;
+                            return item;
+                        })
+                    };
+                },
+                cache: false
+            },
+            placeholder: function () {
+                $(this).data('placeholder');
+            },
+            minimumInputLength: 1,
+            language: {
+                inputTooShort: function (input) {
+
+                    return "Nhập ít nhất " + input.minimum + " ký tự nhãn tài sản.";
+                },
+                noResults: function () {
+                    return "Không tìm thấy vui long thêm mới!";
+                },
+                searching: function () {
+                    return "Đang tìm...";
+                },
+            },
+            templateResult: taiSanResultTemplater
+        });
+
+        $("#searchTS").select2({
+            ajax: {
+                url: "{{ url('taisan/search') }}",
+                method: "GET",
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                    return {
+                        keyword: params.term
+                    };
+                },
+                processResults: function (data) {
+                    return {
+                        // results: data.data
+                        results: $.map(data.data, function (item) {
+                            item.id = item.ts_id;
+                            item.text = item.ts_nhan;
+                            return item;
+                        })
+                    };
+                },
+                cache: false
+            },
+            placeholder: function () {
+                $(this).data('placeholder');
+            },
+            minimumInputLength: 1,
+            language: {
+                inputTooShort: function (input) {
+
+                    return "Nhập ít nhất " + input.minimum + " ký tự nhãn tài sản.";
+                },
+                noResults: function () {
+                    return "Không tìm thấy vui lòng thêm mới!";
+                },
+                searching: function () {
+                    return "Đang tìm...";
+                },
+            },
+            templateResult: taiSanResultTemplater
+        });
+        let noidung = '';
+        let number = 1;
+
+        function addTaiSan() {
+            var option = $('#searchTS').select2('data');
+            var taisan = '';
+            $.ajax({
+                type: "GET",
+                url: "{{ route('thongTinTaiSan') }}",
+                data: {
+                    id: option[0].id
+                },
+                dataType: "json",
+                cache: true,
+                success: function (data) {
+                    if (number == 1) {
+                        $('#noidung').append($('input[name="radioTS"]:checked').val() + ': ' + data.thong_tin_str);
+                        $('#radioND').removeAttr("checked");
+                        $('#radioTS').attr('checked', 'checked');
+                    } else {
+                        taisan = $('#noidung').val() + ('\n') + $('input[name="radioTS"]:checked').val() + ': ' + data.thong_tin_str;
+                        console.log($('#noidung').val());
+                        console.log(taisan);
+                        $('#noidung').val(taisan)
+                        $('#noidung').append('\n');
+                    }
+                    number++
+                }
+            });
+        }
+
+        // ----------------------------- Đương sự --------------------------------------------------
+        var selectedLabel = 'chuyen-nhuong';
+        var soLuongDuongSu = 2;
+        var nhomDuongSu = '';
+        var benA = [];
+        var benB = [];
+        var benC = [];
+
+        function resultTemplater(option) {
+            let arr = [];
+            let duplicated = false;
+            switch (nhomDuongSu) {
+                case 'A':
+                    arr = benA;
+                    break;
+                case 'B':
+                    arr = benB;
+                    break;
+                case 'C':
+                    arr = benC;
+                    break;
+            }
+            arr.forEach((obj) => {
+                if (obj.id == option.id) {
+                    duplicated = true;
+                }
+            });
+            if (duplicated) {
+                return null;
+            }
+            return option.first_name;
+        }
+
+        function selectionTemplater(option) {
+            if (typeof option.first_name !== "undefined") {
+                return resultTemplater(option);
+            }
+            return option.first_name; // I think its either text or label, not sure.
+        }
+
+
+        $("#searchDS").select2({
+            ajax: {
+                url: "{{ url('account/kh') }}",
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                    return {
+                        tk_khachhang: params.term, // search term
+                    };
+                },
+                processResults: function (data) {
+                    return {
+                        results: data.data
+                    };
+                },
+                cache: true
+            },
+            minimumInputLength: 1,
+            language: {
+                inputTooShort: function (input) {
+
+                    return "Nhập ít nhất " + input.minimum + " ký tự tên đương sự.";
+                },
+                noResults: function () {
+                    return "Không tìm thấy vui lòng thêm mới!";
+                },
+                searching: function () {
+                    return "Đang tìm...";
+                },
+            },
+            templateResult: resultTemplater,
+            templateSelection: selectionTemplater,
+            placeholder: function () {
+                $(this).data('placeholder');
+            },
+        });
+        let num = 1;
+
+        function addDuongSu() {
+            var option = $('#searchDS').select2('data');
+            var duongsu = '';
+            console.log(option)
+            $.ajax({
+                type: "GET",
+                url: "{{ route('addDuongSu') }}",
+                data: {
+                    id: option[0].id
+                },
+                dataType: "json",
+                cache: true,
+                success: function (data) {
+                    console.log(data)
+                    if (num == 1) {
+                        $('#duongsu').append($('input[name="radioDS"]:checked').val() + ': ' + data.thong_tin_str);
+                        $('#radioA').removeAttr("checked");
+                        $('#radioB').attr('checked', 'checked');
+                    } else if (num == 2) {
+                        duongsu = $('#duongsu').val() + ('\n') + $('input[name="radioDS"]:checked').val() + ': ' + data.thong_tin_str;
+                        $('#duongsu').val(duongsu);
+                        $('#duongsu').append('\n');
+                        $('#radioB').removeAttr("checked");
+                        $('#radioC').attr('checked', 'checked');
+                    } else if (num == 3) {
+                        duongsu = $('#duongsu').val() + ('\n') + $('input[name="radioDS"]:checked').val() + ': ' + data.thong_tin_str;
+                        $('#duongsu').val(duongsu);
+                        $('#duongsu').append('\n');
+                    } else {
+                        duongsu = $('#duongsu').val() + ('\n') + $('input[name="radioDS"]:checked').val() + ': ' + data.thong_tin_str;
+                        $('#duongsu').val(duongsu);
+                        $('#duongsu').append('\n');
+                    }
+                    num++
+                }
+            });
+        }
+    </script>
+@stop

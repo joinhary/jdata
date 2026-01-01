@@ -1,0 +1,5 @@
+composer global require laravel/installer
+composer create-project --prefer-dist laravel/laravel:^7.0 blog
+php artisan key:generate
+artisan cache:clear
+composer update

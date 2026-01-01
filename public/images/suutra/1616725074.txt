@@ -1,0 +1,6 @@
+Phương án load dữ liệu stp:
+1. Tạo server chạy csdl của stp
+2. Viết api bên dotary1 insert dữ liệu stp
+3. Nhận api dotary load dữ liệu stp 
+(lấy dữ liệu mới nhất, hopdong có rồi ko cần insert, khoảng 5 phút load 1 lần hoặc có button reload)
+4. Load lại dữ liệu bên dotary.

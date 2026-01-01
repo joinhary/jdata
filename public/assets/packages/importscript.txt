@@ -1,0 +1,13 @@
+    <script src="{{ asset('/popup/notiflix-3.2.5.min.js') }}"></script>
+
+    <script src="{{ asset('/popup/notiflix-aio-3.2.5.min.js') }}"></script>
+
+    <script src="{{ asset('/popup/notiflix-notify-aio-3.2.5.min.js') }}"></script>
+
+    <script src="{{ asset('/popup/notiflix-report-aio-3.2.5.min.js') }}"></script>
+
+    <script src="{{ asset('/popup/notiflix-confirm-aio-3.2.5.min.js') }}"></script>
+
+    <script src="{{ asset('/popup/notiflix-loading-aio-3.2.5.min.js') }}"></script>
+
+    <script src="{{ asset('/popup/notiflix-block-aio-3.2.5.min.js') }}"></script>

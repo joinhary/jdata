@@ -1,0 +1,4 @@
+Neu ben hoi thieu: 
+-Tu hoi va chinh, export suutranb tu ngay thieu, chi lay column "ma_dong_bo". Sau do coppy file cua 59 qua 240. 
+Tu 240, chay api /file de tim ra nhung cai thieu, nhung cai nay se luu o file lost1.txt. 
+-Tu 59, chay get_file_dupm de nhan ho so thieu.
