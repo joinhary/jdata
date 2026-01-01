@@ -32,7 +32,7 @@
                         <div id="login" class="animate form" style="background: white">
                             <form action="{{ route('signin') }}" autocomplete="on" method="post" role="form" id="login_form">
                                 <h3 class="white_bg">
-                                    <img src="{{ url('images/logo-jdata-03.png') }}" width="300px" height="150px" alt="josh logo">
+                                    <img src="{{ url('images/logo-jdata-03.png') }}" width="300px" height="100px" alt="josh logo">
                                  </h3>
                                     <!-- CSRF Token -->
 
@@ -221,6 +221,35 @@
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+@if(session('throttle_seconds'))
+<script>
+let seconds = {{ session('throttle_seconds') }};
+
+const submitBtn = document.querySelector('button[type="submit"]');
+if (submitBtn) submitBtn.disabled = true;
+
+Swal.fire({
+    icon: 'warning',
+    title: 'Tài khoản bị khóa',
+    html: 'Vui lòng thử lại sau <b id="countdown">' + seconds + '</b> giây',
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    showConfirmButton: false
+});
+
+let interval = setInterval(() => {
+    seconds--;
+    document.getElementById('countdown').innerText = seconds;
+
+    if (seconds <= 0) {
+        clearInterval(interval);
+        if (submitBtn) submitBtn.disabled = false;
+        Swal.close();
+    }
+}, 1000);
+</script>
+@endif
+
 
 @if(session('swal_success'))
 <script>

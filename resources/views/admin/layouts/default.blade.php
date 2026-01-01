@@ -131,8 +131,8 @@
                 </div>
                 <nav class="nav navbar-nav">
                     <div class="qkimg">
-                        <a href="{{ route('admin') }}">
-                            <img class="qkimg2" src="{{ asset('images/logo-jdata-03.png') }}">
+                        <a href="{{ route('admin') }}" class="mt-2">
+                            <img  src="{{ asset('images/logo-jdata-03.png') }}" width="100px" height="30px" style="margin-top:10px;">
                         </a>
                     </div>
                     <ul class="navbar-right">

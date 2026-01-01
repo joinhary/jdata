@@ -53,36 +53,41 @@ class AuthController extends JoshController
    public function postSignin(Request $request)
 {
     try {
-        /* ===== 1. CHECK SERVER KEY ===== */
-        $ip = $_SERVER['SERVER_ADDR']
-            ?? $_SERVER['LOCAL_ADDR']
-            ?? '192.168.18.47';
-// dd($ip);
-        $key = 'notarysoft';
-        $decry = SModel::first();
 
-        if (!$decry) {
+        /* ===============================
+         * 1. CHECK SERVER KEY (LICENSE)
+         * =============================== */
+        $license = SModel::where('id', 1)->first();
+
+        if (!$license || empty($license->val)) {
             return back()->withInput()
                 ->with('swal_error', 'Unrecognizable key for this server');
         }
 
-        [$hashIp, $hashKey] = explode('~', $decry->val);
+        $plainKey = config('app.key') . '|' . php_uname('n');
 
-        if (!Hash::check($ip, $hashIp) || !Hash::check($key, $hashKey)) {
+        if (!Hash::check($plainKey, $license->val)) {
             return back()->withInput()
                 ->with('swal_error', 'Unrecognizable key for this server');
         }
 
-        /* ===== 2. AUTHENTICATE ===== */
+        /* ===============================
+         * 2. AUTHENTICATE
+         * =============================== */
         $credentials = $request->only('email', 'password');
-        $remember = $request->boolean('remember-me');
+        $remember    = $request->boolean('remember-me');
 
-        if (!$user = Sentinel::authenticate($credentials, $remember)) {
+        // 🔥 ĐỂ SENTINEL TỰ THROW EXCEPTION
+        $user = Sentinel::authenticate($credentials, $remember);
+
+        if (!$user) {
             return back()->withInput()
                 ->with('swal_error', 'Tài khoản hoặc mật khẩu không chính xác');
         }
 
-        /* ===== 3. CHECK NHÂN VIÊN ===== */
+        /* ===============================
+         * 3. CHECK NHÂN VIÊN
+         * =============================== */
         $nhanVien = NhanVienModel::find($user->id);
 
         if (!$nhanVien) {
@@ -90,29 +95,44 @@ class AuthController extends JoshController
             return back()->with('swal_error', 'Tài khoản chưa được gán nhân viên');
         }
 
-        /* ===== 4. CHECK LOGIN CODE ===== */
+        /* ===============================
+         * 4. CHECK LOGIN CODE
+         * =============================== */
         $chiNhanh = ChiNhanhModel::find($nhanVien->nv_vanphong);
 
-        if ($chiNhanh && $chiNhanh->login_code && $chiNhanh->login_code != $request->login_code) {
+        if (
+            $chiNhanh &&
+            !empty($chiNhanh->login_code) &&
+            $chiNhanh->login_code !== $request->login_code
+        ) {
             Sentinel::logout();
             return back()->with('swal_error', 'Mã truy cập không đúng');
         }
 
-        /* ===== 5. LOG ===== */
+        /* ===============================
+         * 5. LOG
+         * =============================== */
         $this->api_create_log($user->id, 'Đăng nhập');
 
         return redirect()->route('admin')
             ->with('success', 'Đăng nhập thành công');
 
     } catch (NotActivatedException $e) {
+
         return back()->withInput()
             ->with('swal_warning', 'Tài khoản chưa được kích hoạt');
 
     } catch (ThrottlingException $e) {
+
         return back()->withInput()
-            ->with('swal_error', 'Tài khoản tạm thời bị khóa do đăng nhập sai nhiều lần');
+            ->with([
+                'throttle_seconds' => $e->getDelay(), // ⬅️ CỰC KỲ QUAN TRỌNG
+                'swal_error'       => 'Tài khoản tạm thời bị khóa do đăng nhập sai nhiều lần'
+            ]);
     }
 }
+
+
 
 
     /**

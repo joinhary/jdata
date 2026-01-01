@@ -210,31 +210,29 @@ return [
     */
 
     'throttling' => [
+      'enabled' => true,
         'model' => 'Cartalyst\Sentinel\Throttling\EloquentThrottle',
 
         'global' => [
-            'interval' => 900,
+            'interval' => 15,
 
-            'thresholds' => [
-                10 => 1,
-                20 => 2,
-                30 => 4,
-                40 => 8,
-                50 => 16,
-                60 => 32,
-            ],
+            'thresholds' => false,
         ],
 
         'ip' => [
-            'interval' => 900,
+            'interval' => 15,
 
-            'thresholds' => 5,
+            'thresholds' => false,
         ],
 
-        'user' => [
-            'interval' => 900,
-
-            'thresholds' => 5,
+        
+        // 🔴 CHẶN THEO USER (email / username)
+    'user' => [
+        'interval' => 15, // phút
+        'thresholds' => [
+            5  => 30,  // 5 lần sai trong 1 phút
+            10 => 300,  // 10 lần sai trong 5 phút
         ],
+    ],
     ],
 ];

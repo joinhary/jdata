@@ -9,7 +9,7 @@ class SModel extends Model
       protected $table = 's';
 
     // KHÔNG dùng primary key
-    protected $primaryKey = null;
+    protected $primaryKey = 'id';
     public $incrementing = false;
 
     // BẮT BUỘC

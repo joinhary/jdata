@@ -31,262 +31,192 @@ class ReportController extends Controller
 
   use Nhanvien;
 
-  public function index(Request $request)
-  {
-   
-    $role    = Sentinel::check()->user_roles()->first()->slug;
-    // dd($role );
-    $code_cn = ChiNhanhModel::find(NhanVienModel::find(Sentinel::check()->id)->nv_vanphong)->code_cn;
+public function index(Request $request)
+{
+    $role = Sentinel::check()->user_roles()->first()->slug;
 
-   
-    $idOffice            = NhanVienModel::find(Sentinel::check()->id)->nv_vanphong;
-    $office              = ChiNhanhModel::pluck('cn_ten', 'code_cn')->prepend('------', NULL);
-    $nameContract        = Kieuhopdong::pluck('kieu_hd', 'lien_ket_id');
-    $listGroup = Kieuhopdong::pluck('kieu_hd', 'lien_ket_id');
-    $nhom      = Kieuhopdong::pluck('kieu_hd', 'lien_ket_id');
-    $contract  = $listGroup;
-    //get id listGroup
-    $listBank = Bank::orderBy('name', 'asc')->select('name', 'id')->pluck('id', 'id');
-    $banks    = $listBank->prepend('---Tất cả---', NULL);
-    $banks = Bank::orderBy('name', 'asc')->select('name', 'id')->get();
-    //create collect bank
-    $bank = collect();
-    //get name bank
-    $banks = $banks->pluck('name', 'id');
-    $banks = $banks->prepend('---Tất cả---', 0);
-
-
-    $ccv_arr = $this->get_ccv();
-    $notary  = collect($ccv_arr)->pluck('first_name', 'first_name')->prepend('------', '');
-    //        Storage::disk('local')->put('office.txt', json_encode($office));
-    /* ngăn chặn/giải tỏa */
-      if($code_cn !== "THACT"){
-        $dataPrevent = [
-          '1' => 'Thường',
-          '3' => 'Ngăn chặn',
-          '3' => 'Giải tỏa',
-          '2' => 'Cảnh báo',
-        ];
-
-      }else{
-        $dataPrevent = [
-          '3' => 'Ngăn chặn',
-          '3' => 'Giải tỏa',
-          '2' => 'Cảnh báo',
-        ];
-      }
-  
-    $prevent     = collect($dataPrevent)->prepend('------', '');
-    /* theo loại */
-    if ($role == 'admin' || $role == 'chuyen-vien-so') {
-      $type = [
-        '1' => 'Sổ công chứng',
-        '3' => 'Mẫu 12B',
-        '4' => 'Báo cáo theo nhóm',
-        '5' => 'Báo cáo ngân hàng',
-      ];
-    } else {
-      $type = [
-        '1' => 'Sổ công chứng',
-        '2' => 'Mẫu 12A',
-        '4' => 'Báo cáo theo nhóm',
-        '5' => 'Báo cáo ngân hàng',
-
-      ];
-    }
-    $type = collect($type);
-    $sortExcel = [
-      '1' => 'Số công chứng',
-      '2' => 'Ngày công chứng',
-    ];
-    $sortExcel = collect($sortExcel);
-    $sortExcel = $sortExcel->prepend('------', NULL);
-    $str_json = json_encode([]);
-    $array    = [
-      'suutranb.*',
-
-    ];
-    if ($role == "admin" || $role == 'chuyen-vien-so') {
-      if($code_cn !== "THACT"){
-        $data = SuuTraModel::query();
-      }else{
-        $data = SuuTraModel::where('suutranb.sync_code', $code_cn);
-
-      }
-    } else {
-      $data = SuuTraModel::where('suutranb.sync_code', $code_cn);
-    }
-  
-    /* thống kê theo văn phòng */
-    if ($request->office) {
-      $officeKey = '"' . $request->office . '"';
-      $data->where('suutranb.sync_code', $request->get('office'));
-    }
-    /* thống kê theo tên hợp đồng*/
-    $selectedContract = $request->contract;
-    if(empty($selectedContract)){
-      $contract_key=Kieuhopdong::pluck('lien_ket_id');
-    }else{
-      $contract_key =  $selectedContract;
-
+    if (in_array($role, ['admin', 'chuyen-vien-so'])) {
+        return $this->indexAdmin($request);
     }
 
-    $inListContract   = [];
-    if (!empty($selectedContract) && count($selectedContract) == 1) {
-      $contract_key = $selectedContract;
-      //dd($nhom_chuyen_nhuong);
-      $selectedContract = $selectedContract[0];
-      $data = $data->where('suutranb.loai', $selectedContract);
-     
-    } elseif (!empty($selectedContract)) {
-      $data = $data->whereIn('suutranb.loai', $selectedContract);
-    }
-    /* thống kê theo công chứng viên */
-    if ($request->notary) {
-      $notaryKey = '"' . $request->notary . '"';
+    return $this->indexUser($request);
+}
 
-      $data->where('suutranb.ccv_master', 'like', '%' . $request->get('notary') . '%');
+
+  protected function indexAdmin(Request $request)
+{
+    $vars = $this->getSearchVariables();
+
+    $code_cn = ChiNhanhModel::find(
+        NhanVienModel::find(Sentinel::check()->id)->nv_vanphong
+    )->code_cn;
+
+    $query = SuuTraModel::query();
+
+    if ($code_cn === 'THACT') {
+        $query->where('suutranb.sync_code', $code_cn);
     }
-   
-    $banksSelected = (array) $request->bank;
-if (!empty($banksSelected)) {
-    foreach ($banksSelected as $item) {
-        if ($item == 0) {
-            $data = SuuTraModel::whereNotNull('bank_id');
-        } else {
-            $data = SuuTraModel::where('bank_id', $item);
+
+    // ==== FILTER (y nguyên code cũ) ====
+    $this->applyOldFilters($query, $request);
+
+    $count = (clone $query)->count();
+
+    $data = $query
+        ->orderBy('st_id', 'desc')
+        ->simplePaginate(20);
+
+    return view(
+        'admin.report.index',
+        array_merge($vars, compact('data', 'count'))
+    );
+}
+
+
+
+  protected function indexUser(Request $request)
+{
+    $vars = $this->getSearchVariables();
+
+    $code_cn = ChiNhanhModel::find(
+        NhanVienModel::find(Sentinel::check()->id)->nv_vanphong
+    )->code_cn;
+
+    $query = SuuTraModel::where('suutranb.sync_code', $code_cn);
+
+    $this->applyOldFilters($query, $request);
+
+    $count = (clone $query)->count();
+
+    $data = $query
+        ->orderBy('st_id', 'desc')
+        ->simplePaginate(20);
+
+    return view(
+        'admin.report.index',
+        array_merge($vars, compact('data', 'count'))
+    );
+}
+
+
+
+ protected function applyOldFilters($data, Request $request)
+{
+    if ($request->filled('office')) {
+        $data->where('suutranb.sync_code', $request->office);
+    }
+
+    if ($request->filled('contract')) {
+        $contracts = array_filter((array)$request->contract);
+        if (!empty($contracts)) {
+            $data->whereIn('suutranb.loai', $contracts);
         }
+    }
+
+    if ($request->filled('notary')) {
+        $data->where('suutranb.ccv_master', 'like', '%' . $request->notary . '%');
+    }
+
+    if ($request->filled('bank')) {
+        $banks = array_filter((array)$request->bank);
+        if (!empty($banks)) {
+            if (in_array(0, $banks)) {
+                $data->whereNotNull('bank_id');
+            } else {
+                $data->whereIn('bank_id', $banks);
+            }
+        }
+    }
+
+    if ($request->filled('dateFrom') && $request->filled('dateTo')) {
+        $data->whereBetween('suutranb.ngay_cc', [
+            $request->dateFrom,
+            $request->dateTo
+        ]);
+    }
+
+    if ($request->filled('status')) {
+        $data->where('suutranb.ngan_chan', $request->status);
     }
 }
 
-    /* thống kê theo ngày */
-    if ($request->dateFrom != SuuTraModel::EMPTY && $request->dateTo == SuuTraModel::EMPTY) {
-      $data->whereDate('suutranb.ngay_cc', '>=', $request->dateFrom);
+
+protected function viewData(array $extra = [])
+{
+    return array_merge([
+        'banks'    => Bank::pluck('name', 'id')->prepend('---Tất cả---', 0),
+        'office'   => ChiNhanhModel::pluck('cn_ten', 'code_cn')->prepend('------', null),
+        'contract' => Kieuhopdong::pluck('kieu_hd', 'lien_ket_id'),
+        'notary'   => collect($this->get_ccv())->pluck('first_name', 'first_name')->prepend('------', ''),
+        'prevent'  => collect([
+            '' => '------',
+            1  => 'Thường',
+            2  => 'Cảnh báo',
+            3  => 'Ngăn chặn',
+        ]),
+        'type'     => collect([
+            1 => 'Sổ công chứng',
+            4 => 'Báo cáo theo nhóm',
+            5 => 'Báo cáo ngân hàng',
+        ]),
+        'sortExcel'=> collect([
+            null => '------',
+            1    => 'Số công chứng',
+            2    => 'Ngày công chứng',
+        ]),
+        'str_json' => json_encode([]),
+    ], $extra);
+}
+protected function getSearchVariables()
+{
+    $office   = ChiNhanhModel::pluck('cn_ten', 'code_cn')->prepend('------', null);
+
+    $contract = Kieuhopdong::pluck('kieu_hd', 'lien_ket_id');
+
+    $contract_key = request()->contract;
+    if (empty($contract_key)) {
+        $contract_key = Kieuhopdong::pluck('lien_ket_id')->toArray();
     }
-    if ($request->dateFrom == SuuTraModel::EMPTY && $request->dateTo != SuuTraModel::EMPTY) {
-      $data->whereDate('suutranb.ngay_cc', '<=', $request->dateTo);
-    }
-    if ($request->dateFrom != SuuTraModel::EMPTY && $request->dateTo != SuuTraModel::EMPTY) {
-      // if($request->office=="TMH"){
-      //   $data->where('so_hd','4059/2022')->whereBetween('suutranb.ngay_cc', [$request->dateFrom, $request->dateTo]);
-      //   dd($data->get());
-      // }
-      $data->whereBetween('suutranb.ngay_cc', [$request->dateFrom, $request->dateTo]);
-    }
-  
-    /* thông kế theo loại */
-    if ($request->status == SuuTraModel::PREVENT) {
-      $data->where('suutranb.ngan_chan', '=', SuuTraModel::PREVENT);
-    }
-    if ($request->status == SuuTraModel::WARNING) {
-      $data->where('suutranb.ngan_chan', '=', SuuTraModel::WARNING);
-    }
-    if ($request->status == SuuTraModel::NORMAL && $request->status != NULL) {
-      $data->where('suutranb.ngan_chan', '=', SuuTraModel::NORMAL);
-    }
-   
-    if ($request->type == 4) {
-      $filterBuilder = clone $data;
 
+    $banks = Bank::orderBy('name', 'asc')
+        ->pluck('name', 'id')
+        ->prepend('---Tất cả---', 0);
 
-      $count = [];
-      $total= clone $data;
-      $total = $total->selectRaw("count(*)")->groupBy('so_hd','sync_code')->get();
-      $total=count($total);
+    $ccv_arr = $this->get_ccv();
+    $notary  = collect($ccv_arr)
+        ->pluck('first_name', 'first_name')
+        ->prepend('------', '');
 
-      // 1 => "Chuyển nhượng - mua bán"
-      // 2 => "Tặng - cho"
-      // 3 => "Thế chấp - cầm cố"
-      // 4 => "Thuê - Mượn"
-      // 5 => "Bảo lãnh"
-      // 6 => "Ủy quyền"
-      // 7 => "Góp vốn"
-      // 8 => "Di chúc - thừa kế"
-      // 9 => "Tài sản vợ chồng"
-      // 10 => "Vay"
-      // 11 => "Giao dịch khác"
-      // 12 => "Hủy"
-      // 13 => "Đặt cọc"
-      // 14 => "Chứng thực chữ ký"
-      $nhom      = Kieuhopdong::pluck('kieu_hd', 'lien_ket_id');
-     
-      $nhom=array_values($nhom->toArray());
-      $filterBuilder = clone $data;
-      $count[] = $filterBuilder->whereIn('suutranb.loai',[1])->count();
-      $filterBuilder = clone $data;
-      $count[]       = $filterBuilder->whereIn('suutranb.loai',[2])->count();
-      $filterBuilder = clone $data;
+    $prevent = collect([
+        '' => '------',
+        1  => 'Thường',
+        3  => 'Ngăn chặn',
+        2  => 'Cảnh báo',
+    ]);
 
-      $count[] = $filterBuilder->whereIn('suutranb.loai', [3])->count();
+    $sortExcel = collect([
+        null => '------',
+        1    => 'Số công chứng',
+        2    => 'Ngày công chứng',
+    ]);
 
-      $filterBuilder = clone $data;
-      $count[]       = $filterBuilder->whereIn('suutranb.loai',[4])->count();
+    $type = collect([
+        1 => 'Sổ công chứng',
+        4 => 'Báo cáo theo nhóm',
+        5 => 'Báo cáo ngân hàng',
+    ]);
 
-      $filterBuilder = clone $data;
-      $count[]       = $filterBuilder->whereIn('suutranb.loai', [5])->count();
-  
-    
-      $filterBuilder = clone $data;
-      $count[]       = $filterBuilder->whereIn('suutranb.loai', [6])->count();
-      $filterBuilder = clone $data;
-
-      $count[]       = $filterBuilder->whereIn('suutranb.loai', [7])->count();
-      $filterBuilder = clone $data;
-
-      $count[] = $filterBuilder->whereIn('suutranb.loai', [8])->count();
-
-      $filterBuilder = clone $data;
-
-      $count[] = $filterBuilder->whereIn('suutranb.loai', [9])->count();
-      $filterBuilder = clone $data;
-
-      $count[]       = $filterBuilder->whereIn('suutranb.loai', [10])->count();
-      $filterBuilder = clone $data;
-      $count[]       = $filterBuilder->whereIn('suutranb.loai', [11])->count();
-      $filterBuilder = clone $data;
-
-      $count[]       = $filterBuilder->whereIn('suutranb.loai', [12])->count();
-      $filterBuilder = clone $data;
-
-
-      $count[]       = $filterBuilder->whereIn('suutranb.loai', [13])->count();
-      $filterBuilder = clone $data;
-      $count[]       = $filterBuilder->whereIn('suutranb.loai', [14])->count();
-      //dd($count,$nhom);
-      //select all contract
-      $data = $data->select('suutranb.*');
-      $data = $data->orderBy('suutranb.ngay_cc', 'desc');
-
-      //get contract id array
-      $contractIds = $data->pluck('suutranb.id')->toArray();
-      return view(
-        'admin.report.indexReportTheoNhom',
-        compact(
-          'nhom',
-          'count',
-          'total',
-          'banks',
-          'type',
-          'str_json',
-          'contract',
-          'contract_key',
-          'office',
-          'notary',
-          'prevent',
-          'sortExcel'
-        )
-      );
-    }
-    $count= clone $data;
-    $count = $count->selectRaw("count(st_id)")->get();
-    $count=count($count);
-    $data  = $data->select($array)->orderby('st_id', 'desc')->simplePaginate(20);
-    // dd($data);
-    return view(
-      'admin.report.index',
-      compact('data', 'count', 'banks', 'type', 'str_json', 'contract', 'office', 'notary', 'prevent', 'contract_key', 'sortExcel')
+    return compact(
+        'office',
+        'contract',
+        'contract_key',
+        'banks',
+        'notary',
+        'prevent',
+        'type',
+        'sortExcel'
     );
-  }
+}
 
   public function export(Request $request)
   {
