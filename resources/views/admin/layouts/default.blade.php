@@ -156,8 +156,10 @@
                                     </span>
                             </a>
                             <div class="dropdown-menu dropdown-usermenu pull-right" aria-labelledby="navbarDropdown">
-                                <a class="dropdown-item"
-                                   href="{{ URL::route('admin.users.show',Sentinel::getUser()->id) }}">Thông tin cá nhân</a>
+                               <a class="dropdown-item"
+   href="{{ route('users.show', Sentinel::getUser()->id) }}">
+   Thông tin cá nhân
+</a>
                                 <a class="dropdown-item" href="{{ URL::route('lockscreen',Sentinel::getUser()->id) }}">
                                     <span>Màn hình chờ</span>
                                 </a>

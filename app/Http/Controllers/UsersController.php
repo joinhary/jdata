@@ -146,6 +146,7 @@ class UsersController extends Controller
 
     public function change_password(ConfirmPasswordNoRequiredRequest $request)
     {
+      dd($request->all());
 //        dd($request->roles_change);
         if (!empty($request->activate_changepassword)) {
             $user = Sentinel::findById($request->id_user_change);
@@ -279,5 +280,73 @@ $num   = ($page - 1) * $limit + 1;
         })
         ->make(true);
 }
+public function show($id)
+    {
+      // dd($id);
+        try {
+            // Get the user information
+            $id = (int) $id;
+            $user = Sentinel::findUserById($id);
+// dd($user->id);
+            //get country name
+            // if ($user->country) {
+            //     $user->country = $this->countries[$user->country];
+            // }
+        } catch (UserNotFoundException $e) {
+            // Prepare the error message
+            $error = trans('users/message.user_not_found', compact('id'));
+            // Redirect to the user management page
+            return Redirect::route('admin.users.index')->with('error', $error);
+        }
+        // dd($id);
+        // Show the page
+        return view('admin.users.show', compact('user','id'));
 
+    }
+   public function passwordreset(Request $request)
+{
+    $data = $request->validate(
+    [
+        'id'       => ['required', 'integer'],
+        'password' => ['required', 'min:6'],
+    ],
+    [
+        'password.required' => 'Vui lòng nhập mật khẩu',
+        'password.min'      => 'Mật khẩu phải có ít nhất 6 ký tự',
+    ]
+);
+
+$user = Sentinel::findUserById((int)$data['id']);
+
+if (!$user) {
+    return response()->json([
+        'status'  => 'error',
+        'message' => 'Người dùng không tồn tại'
+    ], 404);
+}
+
+// ✅ Sentinel update password
+Sentinel::update($user, [
+    'password' => $data['password'],
+]);
+
+return response()->json([
+    'status'  => 'success',
+    'message' => 'Đổi mật khẩu thành công'
+]);
+}
+public function update_avt($id, Request $request)
+    {
+      dd($request->all());
+        $save_path = 'assets/images/authors/';
+        if ($request->hasFile('pic')) {
+            $file = $request->file('pic');
+            $pic = time() . '.' . $file->getClientOriginalExtension();
+            $file->move($save_path, $pic);
+            User::find($id)->update([
+                'pic' => $pic
+            ]);
+        }
+        return back()->with('success', 'Cập nhật ảnh đại diện thành công');
+    }
 }

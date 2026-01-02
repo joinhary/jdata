@@ -41,6 +41,7 @@ Route::group(['prefix' => 'admin', 'namespace' => 'Admin'], function () {
     # Lock screen
     Route::get('{id}/lockscreen', [UsersController::class,'lockscreen'])->name('lockscreen');
     Route::post('{id}/lockscreen', [UsersController::class,'postLockscreen'])->name('plockscreen');
+    
     # All basic routes defined here
     Route::get('login', [AuthController::class,'getSignin'])->name('login');
     Route::get('signin', [AuthController::class,'getSignin'])->name('signin');
@@ -119,8 +120,8 @@ Route::group(['prefix' => 'admin', 'namespace' => 'Admin', 'as' => 'admin.'], fu
         Route::get('{user}/delete', [UsersController::class,'destroy'])->name('users.delete');
         Route::get('{user}/confirm-delete', [UsersController::class,'getModalDelete'])->name('users.confirm-delete');
         Route::get('{user}/restore', [UsersController::class,'getRestore'])->name('restore.user');
-        //        Route::post('{user}/passwordreset', 'UsersController::class,'passwordreset')->name('passwordreset');
-        Route::post('passwordreset', [UsersController::class,'passwordreset'])->name('passwordreset');
+        
+        
     });
     Route::resource('users', 'UsersController');
 
@@ -136,6 +137,10 @@ Route::group(['prefix' => 'admin', 'namespace' => 'Admin', 'as' => 'admin.'], fu
 Route::get('/', [SystemController::class, 'home'])->name('home');
 
 Route::post('admin/users/{id}', [UsersController::class,'update_avt'])->name('update1');
+Route::get('users/{id}', [UsersController::class, 'show'])
+            ->name('users.show');
+            Route::post('users/passwordreset', [UsersController::class, 'passwordreset'])
+    ->name('users.passwordreset');
 
 //Route::get('{name?}', 'FrontEndController::class,'showFrontEndView');
 # End of frontend views
@@ -550,4 +555,7 @@ Route::get('/get-live-logs', function () {
     $logs = session('live_logs', []);
     session()->forget('live_logs'); // clear logs after read
     return response()->json(['logs' => $logs]);
+});
+Route::get('/test-controller', function () {
+    return app(\App\Http\Controllers\Admin\UsersController::class)::class;
 });

@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Http\Controllers\Admin\SuuTraController;
+use App\Http\Controllers\SuuTraController;
 use Illuminate\Console\Command;
 use Ixudra\Curl\Facades\Curl;
 

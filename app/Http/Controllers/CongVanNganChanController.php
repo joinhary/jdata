@@ -3,16 +3,17 @@
 namespace App\Http\Controllers;
 
 use Kieuhopdong;
-use App\Models\TaiSanModel;
-use App\Models\NhanVienModel;
-use App\Models\SuuTraModel;
-use App\Models\User;
-use App\Models\VanBanModel;
 use Carbon\Carbon;
-use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
+use App\Models\User;
+use App\Models\SuuTraModel;
+use App\Models\TaiSanModel;
+use App\Models\VanBanModel;
 use Illuminate\Http\Request;
+use App\Models\NhanVienModel;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use App\Http\Controllers\SuuTraController;
+use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 
 class CongVanNganChanController extends Controller
 {

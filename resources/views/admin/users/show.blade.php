@@ -47,6 +47,7 @@
                               enctype="multipart/form-data">
                             <div class="col-lg-12">
                                 <div class="panel">
+                                 
                                     <div class="panel-heading">
                                         <h3 class="panel-title">Thông tin người dùng </h3>
                                     </div>
@@ -136,6 +137,7 @@
                                 <div class="form-body">
                                     <div class="form-group">
                                         {{ csrf_field() }}
+                                         <input name="id" id="id" value="{{$user->id??''}}" hidden>
                                         <label for="inputpassword" class="col-md-3 control-label">
                                             Nhập mật khẩu
                                             <span class='require' style="color: red">*</span>
@@ -184,9 +186,22 @@
 @stop
 {{-- page level scripts --}}
 @section('footer_scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+@if(session('success'))
+<script>
+Swal.fire({
+    icon: 'success',
+    title: 'Thành công',
+    text: '{{ session('success') }}'
+});
+</script>
+@endif
+
     <!-- Bootstrap WYSIHTML5 -->
     <script src="{{ asset('assets/vendors/jasny-bootstrap/js/jasny-bootstrap.js') }}" type="text/javascript"></script>
-
+<script>
+    const USER_ID = @json(optional($user)->id);
+</script>
     <script type="text/javascript">
         $(document).ready(function () {
             $('#tab1').tab('show');
@@ -202,23 +217,41 @@
                 }
 
                 if (check == true) {
-                    var sendData = '_token=' + $("input[name='_token']").val() + '&password=' + $('#password').val() + '&id=' + {{ $user->id }};
+                    var sendData = '_token=' + $("input[name='_token']").val() + '&password=' + $('#password').val() + '&id=' + USER_ID;
                     var path = "passwordreset";
                     $.ajax({
-                        url: path,
-                        type: "post",
-                        data: sendData,
-                        headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf_token"]').attr('content')
-                        },
-                        success: function (data) {
-                            $('#password, #password-confirm').val('');
-                            alert('password reset successful');
-                        },
-                        error: function (xhr, ajaxOptions, thrownError) {
-                            alert('error in password reset');
-                        }
-                    });
+    url: "{{ route('users.passwordreset') }}",
+    type: "POST",
+    data: {
+        _token: "{{ csrf_token() }}",
+        password: $('#password').val(),
+        id: USER_ID
+    },
+    success: function () {
+      let message = 'Đổi mật khẩu thành công';
+      Swal.fire({
+            icon: 'success',
+            title: 'Thông báo',
+            text: message
+        });
+        $('#password, #password-confirm').val('');
+        
+    },
+    error: function (xhr) {
+    let message = 'Có lỗi xảy ra';
+
+    if (xhr.status === 422) {
+        const errors = xhr.responseJSON.errors;
+        message = Object.values(errors)[0][0];
+    }
+
+    Swal.fire({
+        icon: 'error',
+        title: 'Lỗi',
+        text: message
+    });
+}
+});
                 }
             });
         });

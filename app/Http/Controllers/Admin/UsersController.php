@@ -1,4 +1,4 @@
-<?php namespace App\Http\Controllers;
+<?php namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\JoshController;
 use App\Http\Controllers\users;
@@ -488,35 +488,9 @@ class UsersController extends JoshController
         return back()->with('success', 'Cập nhật ảnh đại diện thành công');
     }
 
-    public function show($id)
-    {
-        try {
-            // Get the user information
-            $user = Sentinel::findUserById($id);
+    
 
-            //get country name
-            if ($user->country) {
-                $user->country = $this->countries[$user->country];
-            }
-        } catch (UserNotFoundException $e) {
-            // Prepare the error message
-            $error = trans('users/message.user_not_found', compact('id'));
-            // Redirect to the user management page
-            return Redirect::route('admin.users.index')->with('error', $error);
-        }
-        // Show the page
-        return view('admin.users.show', compact('user'));
-
-    }
-
-    public function passwordreset(Request $request)
-    {
-        $id = $request->id;
-        $user = Sentinel::findUserById($id);
-        $password = $request->get('password');
-        $user->password = Hash::make($password);
-        $user->save();
-    }
+  
 
     public function lockscreen($id)
     {
