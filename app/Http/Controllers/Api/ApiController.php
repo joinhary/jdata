@@ -2,17 +2,19 @@
 
 namespace App\Http\Controllers\Api;
 
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Sentinel;
-use App\Models\NhanVienModel;
 use Carbon\Carbon;
-use App\Models\ChiNhanhModel;
-use App\Exports\Export_BDS_moth;
-use App\Exports\Export_BDS_sum;
-use App\Http\Controllers\Controller;
 use App\Models\SuuTraModel;
+use Illuminate\Http\Request;
+use App\Models\ChiNhanhModel;
+use App\Models\NhanVienModel;
 use Ixudra\Curl\Facades\Curl;
-use DB;
+use App\Exports\Export_BDS_sum;
+use App\Exports\Export_BDS_moth;
+use App\Http\Controllers\Controller;
+use App\Http\Controllers\AppController;
+
 class ApiController extends Controller
 {
     public static function insert_solr($data)
@@ -67,12 +69,12 @@ class ApiController extends Controller
     public function merge_content()
     {
         set_time_limit(0);
-        $end_of_loop = (int)file_get_contents("C:/xampp/htdocs/aemSql/public/solr_error/end_of_solr.txt");
+        $end_of_loop = (int)file_get_contents("C:/laragon6/www/jdata2025/public/solr_error/end_of_solr.txt");
         $data = SuuTraModel::where('st_id', '>=', $end_of_loop)->whereNull('deleted_at')->orderBy('st_id', 'asc')->limit(500)->get();
         foreach ($data as $item) {
             $item->merge_content = $item->duong_su_en . ' ' . $item->texte_en;
             $item->save();
-            $file = fopen("C:/xampp/htdocs/aemSql/public/solr_error/end_of_solr.txt", "w") or die("Unable to open file!");
+            $file = fopen("C:/laragon6/www/jdata2025/public/solr_error/end_of_solr.txt", "w") or die("Unable to open file!");
             //write json to file
             $id = $item->getAttributes();
             fwrite($file,  $id['st_id'] . "\n");
@@ -102,7 +104,7 @@ class ApiController extends Controller
     public function dump_lost()
     {
 
-        $file = (string)file_get_contents("C:/xampp/htdocs/aemSql/public/lost1.txt");
+        $file = (string)file_get_contents("C:/laragon6/www/jdata2025/public/lost1.txt");
         // $file = explode(' ', $file);
         $file = json_decode($file);
         // $file = array_chunk($file, 2000);
@@ -123,7 +125,7 @@ class ApiController extends Controller
     {
         try {
             set_time_limit(0);
-            $end_of_loop = (int)file_get_contents("C:/xampp/htdocs/aemSql/public/solr_error/end_of_solr.txt");
+            $end_of_loop = (int)file_get_contents("C:/laragon6/www/jdata2025/public/solr_error/end_of_solr.txt");
             $data = SuuTraModel::where('st_id', '>=', $end_of_loop)->whereNull('deleted_at')->orderBy('st_id', 'asc')->limit(500)->get();
             foreach ($data as $item) {
                 $item->duong_su = str_replace(':', ' ', $item->duong_su);
@@ -132,13 +134,13 @@ class ApiController extends Controller
                 $item->texte_en = str_replace(':', ' ', $item->texte_en);
                 $item->save();
                 $id = $item->getAttributes();
-                $file = fopen("C:/xampp/htdocs/aemSql/public/solr_error/end_of_solr.txt", "w") or die("Unable to open file!");
+                $file = fopen("C:/laragon6/www/jdata2025/public/solr_error/end_of_solr.txt", "w") or die("Unable to open file!");
                 fwrite($file, $id['st_id'] . "\n");
                 fclose($file);
             }
             return view('admin.suutra.reload');
         } catch (QueryException $e) {
-            $file = fopen("C:/xampp/htdocs/aemSql/public/solr_error/error.txt", "a") or die("Unable to open file!");
+            $file = fopen("C:/laragon6/www/jdata2025/public/solr_error/error.txt", "a") or die("Unable to open file!");
             $id = $item->getAttributes();
             fwrite($file, "*" . $id['st_id'] . "\n");
             fclose($file);

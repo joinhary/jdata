@@ -82,6 +82,15 @@
                                value="{{$nhanvien->address}}"
                                placeholder="Nhập vào số nhà, tên đường (Vd: 1 đường Lý Tự Trọng)">
                     </div>
+                    <div class="row">
+                        <label for="address">Trang thai:</label>
+                        <select type="text" id="trangthai" class="form-control" name="trangthai"
+                               value="{{$nhanvien->is_active == 1 ? 'Kích hoạt' : 'Vô hiệu hóa'}}"
+                               >
+                               <option value="" {{$nhanvien->is_active == null ? 'selected' : ''}}>Kích hoạt</option>
+                               <option value="1" {{$nhanvien->is_active == 1 ? 'selected' : ''}}>Vô hiệu hóa</option>
+                        </select>
+                    </div>
                     <br>
                     <div class="row">
                         <a href="{{route('indexNhanVien')}}" type="cancel" class="btn btn-secondary qkbtn">Hủy</a>

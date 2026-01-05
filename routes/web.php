@@ -29,6 +29,7 @@ include('suutra.php');
 include('App.php');
 include('nroutes.php');
 include('taisan.php');
+// include('api.php');
 Route::pattern('slug', '[a-z0-9- _]+');
 Route::group(['prefix' => 'admin/suutra-log'], function () {
     Route::get('/', [SuuTraLogController::class, 'index'])->name('suutralogIndex');

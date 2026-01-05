@@ -8,6 +8,7 @@
     "require": {
         "php": "^8.3",
         "cartalyst/sentinel": "^9.0",
+        "ixudra/curl": "^6.23",
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1",
         "maatwebsite/excel": "^3.1",

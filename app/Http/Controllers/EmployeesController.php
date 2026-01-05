@@ -222,9 +222,10 @@ if ($roles == 'admin') {
      */
     public function edit($id)
     {
+      // dd(1);
         $user = $this->getUserInfo($id);
         $pic = User::find($id)->pic;
-        $nhanvien = $user->nhanvien()->select('nhanvien.*', 'role_id as nv_chucvu', 'phone', 'address')
+        $nhanvien = $user->nhanvien()->select('nhanvien.*', 'role_id as nv_chucvu', 'phone', 'address','nhanvien.is_active')
             ->join('users', 'id', '=', 'nhanvien.nv_id')
             ->join('role_users', 'user_id', '=', 'nv_id')
             ->first();
@@ -278,6 +279,7 @@ if ($roles == 'admin') {
         $nv_vanphong = $request->nv_vanphong;
         $nv_chucvu = $request->nv_chucvu;
         $id_uchi = $request->id_uchi;
+        $is_active = $request->trangthai;
        $request->validate([
     'nv_hoten' => 'required',
     'nv_vanphong' => 'required',
@@ -315,6 +317,7 @@ if ($roles == 'admin') {
                 'nv_phuong' => $nv_phuong,
                 'nv_ap' => $nv_ap,*/
                 'nv_vanphong' => $nv_vanphong,
+                'is_active' => $is_active,
                 /*                'id_uchi' => $id_uchi,
                                 'name_uchi' => $name_uchi,*/
             ]);

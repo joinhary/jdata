@@ -950,7 +950,7 @@ class Solr_Basic_Print extends Controller
                    
                     $count = $data[1];
                     $data = $data[0];
-                    return view('search', compact('data', 'option', 'type', 'count', 'search', 'code_cn', 'count_bs', 'count_ngan_chan', 'count_office','string_out','count_ngan_chan_result'));
+                    return view('search', compact('data', 'option', 'type', 'count', 'search', 'code_cn', 'count_bs',  'count_office',));
                 } elseif (strpos($duong_su, '"') === false && strpos($tai_san, '"') !== false) {
                     $data = $this->XuLyTimKiem_2_o_tai_san($tai_san, $duong_su, 2, $request);
                    

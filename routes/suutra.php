@@ -23,7 +23,7 @@ Route::group([
         Route::get('update-sync-code', [SuuTraController::class, 'updateSyncCode'])->name('updateSyncCode');
         Route::get('update-en-column', [SuuTraController::class, 'updateEnColumn'])->name('updateEnColumn');
         Route::get('delete/{id}', [SuuTraController::class, 'deleteSuutra'])->name('deleteSuutra');
-        Route::get('update-doc-number', 'SuuTraController@updateNumber')->name('update_doc_number');
+        Route::get('update-doc-number', [SuuTraController::class, 'updateNumber'])->name('update_doc_number');
 
         Route::get('update-sync', [SuuTraController::class, 'updateReverse'])->name('updateReverse');
         Route::post('import', [SuuTraController::class, 'import'])->name('importSuutra');

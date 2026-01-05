@@ -4084,6 +4084,7 @@ class SuuTraController extends Controller
             ->join('nhanvien', 'nhanvien.nv_id', '=', 'users.id')
             ->where('roles.slug', '=', 'chuyen-vien')
             ->where('nhanvien.nv_vanphong', '=', $id_vp)
+            ->where('nhanvien.is_active',null)
             ->pluck('users.first_name', 'users.id')->prepend('---  Chọn chuyên viên  ---', '');
         $bank = DB::table('bank')->pluck('name', 'id')->prepend(
             '---  Chọn ngân hàng  ---',

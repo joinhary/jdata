@@ -35,7 +35,7 @@ Route::get('get-date-suutra3-ngan-chan', [SuuTraController::class,'getNgayLoad3_
 Route::post('post-data-suutra-stp', [SuuTraController::class,'postDataSTP']);
 Route::post('post-data-suutra-stp-future/{id}', [SuuTraController::class,'postDataSTPFuture']);
 Route::post('update-data-suutra-stp/{id}', [SuuTraController::class,'updateDataSTP']);
-Route::post('update-data-suutra-property/{id}', [uuTraController::class,'updateDataProperty']);
+Route::post('update-data-suutra-property/{id}', [SuuTraController::class,'updateDataProperty']);
 
 Route::post('update-data-suutra-stp-ngan-chan/{id}', [SuuTraController::class,'updateDataSTP_nganchan']);
 
