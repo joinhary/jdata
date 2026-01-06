@@ -599,9 +599,17 @@ $(window).on('load', function () {
      * 3️⃣ Token còn lại
      * ============================= */
     let tokens = raw
-        .replace(/['"]/g, '')
-        .split(/\s+/)
-        .filter(t => t.length > 0);
+    .replace(/['"]/g, '')
+    .split(/\s+/)
+    .filter(t => t.length > 0)
+    .map(t => {
+        return {
+            raw: t,
+            isWildcard: t.includes('*'),
+            clean: t.replace(/\*/g, '')
+        };
+    });
+
 
     console.log({ phrases, tokens });
 
@@ -627,15 +635,21 @@ $(window).on('load', function () {
                 /* =============================
                  * 🔶 HIGHLIGHT TOKEN RIÊNG
                  * ============================= */
-                tokens.forEach(token => {
-                    let escaped = token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                tokens.forEach(obj => {
+    if (!obj.clean) return;
 
-                    let regex = new RegExp(`\\b${escaped}\\b`, 'gi');
+    let escaped = obj.clean.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-                    $(selector).markRegExp(regex, {
-                        ignoreJoiners: true
-                    });
-                });
+    // 👉 nếu có * → KHÔNG dùng \b
+    let regex = obj.isWildcard
+        ? new RegExp(escaped, 'gi')
+        : new RegExp(`\\b${escaped}\\b`, 'gi');
+
+    $(selector).markRegExp(regex, {
+        ignoreJoiners: true
+    });
+});
+
             }
         });
     }
@@ -687,30 +701,84 @@ $(window).on('load', function () {
         return;
     }
 
-    let keywordRaw = window.searchTaisan || '';
+    let raw = window.searchTaisan || '';
+    raw = raw.trim();
+    if (!raw) return;
 
-    // 1️⃣ bỏ dấu "
-    keywordRaw = keywordRaw.replace(/["']/g, '').trim();
+    /* =============================
+     * 1️⃣ Lấy cụm trong ngoặc kép
+     * ============================= */
+    let phraseMatches = [...raw.matchAll(/"([^"]+)"/g)];
+    let phrases = phraseMatches.map(m => m[1].trim());
 
-    if (!keywordRaw) return;
-
-    // 2️⃣ tách từ theo khoảng trắng
-    let keywords = keywordRaw.split(/\s+/);
-
-    console.log('Keywords:', keywords);
-
-    // 3️⃣ clear mark cũ
-    $('.tai_san_1').unmark({
-        done: function () {
-            // 4️⃣ mark từng từ
-            $('.tai_san_1').mark(keywords, {
-                separateWordSearch: false,
-                accuracy: "partially",
-                caseSensitive: false,
-                ignoreJoiners: true
-            });
-        }
+    /* =============================
+     * 2️⃣ Loại cụm khỏi chuỗi
+     * ============================= */
+    phraseMatches.forEach(m => {
+        raw = raw.replace(m[0], '');
     });
+
+    /* =============================
+     * 3️⃣ Token còn lại
+     * ============================= */
+    let tokens = raw
+    .replace(/['"]/g, '')
+    .split(/\s+/)
+    .filter(t => t.length > 0)
+    .map(t => {
+        return {
+            raw: t,
+            isWildcard: t.includes('*'),
+            clean: t.replace(/\*/g, '')
+        };
+    });
+
+
+    console.log({ phrases, tokens });
+
+    function highlight(selector) {
+        $(selector).unmark({
+            done: function () {
+
+                /* =============================
+                 * 🔶 HIGHLIGHT CỤM CHÍNH XÁC
+                 * ❌ KHÔNG dùng \b
+                 * ============================= */
+                phrases.forEach(text => {
+                    let escaped = text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+                    let regex = new RegExp(escaped, 'gi');
+
+                    $(selector).markRegExp(regex, {
+                        ignoreJoiners: true,
+                        separateWordSearch: false
+                    });
+                });
+
+                /* =============================
+                 * 🔶 HIGHLIGHT TOKEN RIÊNG
+                 * ============================= */
+                tokens.forEach(obj => {
+    if (!obj.clean) return;
+
+    let escaped = obj.clean.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+    // 👉 nếu có * → KHÔNG dùng \b
+    let regex = obj.isWildcard
+        ? new RegExp(escaped, 'gi')
+        : new RegExp(`\\b${escaped}\\b`, 'gi');
+
+    $(selector).markRegExp(regex, {
+        ignoreJoiners: true
+    });
+});
+
+            }
+        });
+    }
+
+    highlight('.tai_san_1');
+    
 });
 </script>
 <!-- search highlight tai san 2 -->
@@ -778,9 +846,17 @@ $(window).on('load', function () {
      * 3️⃣ Token còn lại
      * ============================= */
     let tokens = raw
-        .replace(/['"]/g, '')
-        .split(/\s+/)
-        .filter(t => t.length > 0);
+    .replace(/['"]/g, '')
+    .split(/\s+/)
+    .filter(t => t.length > 0)
+    .map(t => {
+        return {
+            raw: t,
+            isWildcard: t.includes('*'),
+            clean: t.replace(/\*/g, '')
+        };
+    });
+
 
     console.log({ phrases, tokens });
 
@@ -806,15 +882,21 @@ $(window).on('load', function () {
                 /* =============================
                  * 🔶 HIGHLIGHT TOKEN RIÊNG
                  * ============================= */
-                tokens.forEach(token => {
-                    let escaped = token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                tokens.forEach(obj => {
+    if (!obj.clean) return;
 
-                    let regex = new RegExp(`\\b${escaped}\\b`, 'gi');
+    let escaped = obj.clean.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-                    $(selector).markRegExp(regex, {
-                        ignoreJoiners: true
-                    });
-                });
+    // 👉 nếu có * → KHÔNG dùng \b
+    let regex = obj.isWildcard
+        ? new RegExp(escaped, 'gi')
+        : new RegExp(`\\b${escaped}\\b`, 'gi');
+
+    $(selector).markRegExp(regex, {
+        ignoreJoiners: true
+    });
+});
+
             }
         });
     }
@@ -849,7 +931,14 @@ $(window).on('load', function () {
     let tokens = raw
         .replace(/['"]/g, '')
         .split(/\s+/)
-        .filter(t => t.length > 0);
+        .filter(t => t.length > 0)
+        .map(t => {
+            return {
+                raw: t,
+                isWildcard: t.includes('*'),
+                clean: t.replace(/\*/g, '')
+            };
+        });
 
     console.log({
         phrases,
@@ -874,14 +963,21 @@ $(window).on('load', function () {
 
 
                 // 🔶 highlight token độc lập
-                tokens.forEach(token => {
-                    let escaped = token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                    let regex = new RegExp(`\\b${escaped}\\b`, 'gi');
+                tokens.forEach(obj => {
+    if (!obj.clean) return;
 
-                    $(selector).markRegExp(regex, {
-                        ignoreJoiners: true
-                    });
-                });
+    let escaped = obj.clean.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+    // 👉 nếu có * → KHÔNG dùng \b
+    let regex = obj.isWildcard
+        ? new RegExp(escaped, 'gi')
+        : new RegExp(`\\b${escaped}\\b`, 'gi');
+
+    $(selector).markRegExp(regex, {
+        ignoreJoiners: true
+    });
+});
+
             }
         });
     }
@@ -946,7 +1042,16 @@ $(window).on('load', function () {
     let tokens = raw
         .replace(/['"]/g, '')
         .split(/\s+/)
-        .filter(t => t.length >= 3); // tránh văn, an
+        .filter(t => t.length >= 3) // tránh văn, an
+       
+    .map(t => {
+        return {
+            raw: t,
+            isWildcard: t.includes('*'),
+            clean: t.replace(/\*/g, '')
+        };
+    });
+
 
     function highlight(selector) {
         $(selector).unmark({
@@ -1061,7 +1166,14 @@ $(window).on('load', function () {
     let tokens = raw
         .replace(/['"]/g, '')
         .split(/\s+/)
-        .filter(t => t.length > 0);
+        .filter(t => t.length > 0)
+        .map(t => {
+            return {
+                raw: t,
+                isWildcard: t.includes('*'),
+                clean: t.replace(/\*/g, '')
+            };
+        });
 
     console.log({ phrases, tokens });
 
@@ -1087,15 +1199,21 @@ $(window).on('load', function () {
                 /* =============================
                  * 🔶 HIGHLIGHT TOKEN RIÊNG
                  * ============================= */
-                tokens.forEach(token => {
-                    let escaped = token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                tokens.forEach(obj => {
+    if (!obj.clean) return;
 
-                    let regex = new RegExp(`\\b${escaped}\\b`, 'gi');
+    let escaped = obj.clean.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-                    $(selector).markRegExp(regex, {
-                        ignoreJoiners: true
-                    });
-                });
+    // 👉 nếu có * → KHÔNG dùng \b
+    let regex = obj.isWildcard
+        ? new RegExp(escaped, 'gi')
+        : new RegExp(`\\b${escaped}\\b`, 'gi');
+
+    $(selector).markRegExp(regex, {
+        ignoreJoiners: true
+    });
+});
+
             }
         });
     }

@@ -2,7 +2,7 @@
 
 
 use App\Http\Controllers\SuuTraController;
-use Exception;
+// use Exception;
 use App\Models\User;
 
 use Carbon\Carbon;
@@ -291,7 +291,7 @@ Route::get('change-login-key', function (Request $request) {
     return ['status' => true];
 });
 Route::get('get-template', function (Request $request) {
-  dd(1);
+  // dd(1);
     $vanphong = $request->vanphong;
     $vanban = VanBanModel::where('id_vp', '=', 2020)->pluck('vb_nhan', 'lien_ket');
     return $vanban;

@@ -90,9 +90,18 @@ foreach ($list as $value => $label) {
         unset($options['url'], $options['method']); // remove form params
 
         $html = '';
-        foreach ($options as $key => $value) {
-            $html .= "$key=\"$value\" ";
+
+foreach ($options as $key => $value) {
+    if (is_array($value)) {
+        foreach ($value as $k => $v) {
+            $html .= $key . '-' . $k . '="' . e($v) . '" ';
         }
-        return trim($html);
+    } else {
+        $html .= $key . '="' . e($value) . '" ';
+    }
+}
+
+return trim($html);
+
     }
 }

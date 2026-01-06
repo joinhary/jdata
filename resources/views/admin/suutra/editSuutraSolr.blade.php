@@ -30,14 +30,22 @@
         <br>
         <div class="tab-content">
             <div class="tab-pane active" id="home">
-                {{ \App\Helpers\Form::open(['route' => ['updateSuutraSolr', 'id' => $suutra->st_id], 'method' => 'POST', 'id' => 'form6']) }}
+                
+                <form method="POST"
+      action="{{ route('suutra.solr.update', $suutra->st_id) }}"
+      id="form6_{{ $suutra->st_id }}">
+    @csrf
+    @method('PUT')
+
                 <!-- 2 column grid layout with text inputs for the first and last names -->
                 <div class="row mb-4">
                     <div class="col">
 
                         <div class="form-outline">
+                          <input type="text" id="id" class="form-control" name="id"
+                                value="{{ $suutra->st_id }}"  />
                             <input type="text" id="form6Example1" class="form-control" name="ma_dong_bo"
-                                value="{{ $suutra->ma_dong_bo }}" disabled />
+                                value="{{ $suutra->ma_dong_bo }}" readonly />
                             <label class="form-label" for="form6Example1">ma_dong_bo</label>
                         </div>
                     </div>
@@ -170,7 +178,7 @@
                         Delete
               
                     </a>
-                {{ \App\Helpers\Form::close() }}
+                </form>
             </div>
             <div class="tab-pane" id="profile">
                 <label class="form-label" for="form6Example1">Chi nhánh :</label>
@@ -212,19 +220,19 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">X</button>
-                    <button type="button" class="btn btn-primary" onclick="save()">Update</button>
+                    <button type="button" class="btn btn-primary" onclick="save({{ $suutra->st_id }})">Update</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <script>
+    <!-- <script>
         $('#exampleModal').on('show.bs.modal', event => {
             var button = $(event.relatedTarget);
-            var modal = $(this);
-            // Use above variables to manipulate the DOM
-        });
-    </script>
+            var modal = $(this); -->
+            <!-- // Use above variables to manipulate the DOM -->
+        <!-- }); -->
+    <!-- </script> -->
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
 
@@ -266,15 +274,23 @@
             });
         });
 
-        function save() {
-            var confirm_code = md5(document.getElementById('confirm_code').value);
-            var code = md5('apg135792022');
-            if (confirm_code == code) {
-                document.getElementById('form6').submit();
-            } else {
-                alert('Mã xác nhận không đúng');
-            }
+        function save(id) {
+    var confirm_code = md5(document.getElementById('confirm_code').value);
+    var code = md5('apg135792022');
+
+    if (confirm_code === code) {
+        var form = document.getElementById('form6_' + id);
+        if (!form) {
+            alert('Không tìm thấy form');
+            return;
         }
+        form.submit();
+    } else {
+        alert('Mã xác nhận không đúng');
+    }
+}
+
+
     </script>
 </body>
 

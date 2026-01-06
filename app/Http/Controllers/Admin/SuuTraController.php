@@ -18,6 +18,7 @@ use stdClass;
 
 class SuuTraController extends Controller
 {
+  protected array $config = [];
     public static function insert_solr($data, $note)
     {
         $create = new SolrCheckModel;

@@ -758,9 +758,7 @@
                                             @endif
                                         </td>
                                     @endif
-                                    <!-- <td>
-                                                            {{ $value['ngay_cc'][0] ?? $value['ngay_chan'][0] }}
-                                                            </td> -->
+                                
                                     @if ($value['ngay_chan'])
                                         @php
                                             $a = date('d/m/Y H:i:s', strtotime($value['ngay_chan'][0]) ?? '');
@@ -778,17 +776,40 @@
                                         @endif
                                     @else
                                         @php
-                                            $a = date('d/m/Y', strtotime($value['ngay_cc'][0]) ?? '');
-                                        @endphp
+    $a = isset($value['ngay_cc']['date'])
+        ? \Carbon\Carbon::parse($value['ngay_cc']['date'])->format('d/m/Y')
+        : '';
+@endphp
                                         @if ($a == '01/01/1970')
                                             <td style="width: 8%">
                                                 <b>{{ \Carbon\Carbon::parse($value['ngay_cc'][0])->format('d/m/Y') }}</b>
                                             </td>
                                         @else
                                             <td style="width: 8%">
-                                                <b>{{ \Carbon\Carbon::parse($value['ngay_cc'][0])->format('d/m/Y') }}
-                                                </b>
-                                            </td>
+    <b>
+        @php
+            $ngay = '';
+
+            if (!empty($value['ngay_cc'])) {
+                // Dữ liệu cũ: array [0 => 'yyyy-mm-dd']
+                if (is_array($value['ngay_cc']) && isset($value['ngay_cc'][0])) {
+                    $ngay = \Carbon\Carbon::parse($value['ngay_cc'][0])->format('d/m/Y');
+
+                // Dữ liệu mới: Carbon toArray()
+                } elseif (is_array($value['ngay_cc']) && isset($value['ngay_cc']['date'])) {
+                    $ngay = \Carbon\Carbon::parse($value['ngay_cc']['date'])->format('d/m/Y');
+
+                // Dữ liệu mới: string datetime
+                } elseif (is_string($value['ngay_cc'])) {
+                    $ngay = \Carbon\Carbon::parse($value['ngay_cc'])->format('d/m/Y');
+                }
+            }
+        @endphp
+
+        {{ $ngay }}
+    </b>
+</td>
+
                                         @endif
                                     @endif
                                     <td class="duong_su_1">

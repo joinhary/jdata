@@ -2,25 +2,26 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\NhanVienRequest;
-use App\Models\NhanVienModel;
+use URL;
+use App\Models\User;
 use App\Models\RoleModel;
+use Illuminate\View\View;
+use Illuminate\Http\Request;
+use App\Models\ChiNhanhModel;
+use App\Models\NhanVienModel;
+use Illuminate\Http\Response;
 use App\Models\RoleUsersModel;
 use App\Models\UchiUsersModel;
-use App\Models\User;
-use Cartalyst\Sentinel\Laravel\Facades\Activation;
-use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
+use App\Http\Requests\NhanVienRequest;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Foundation\Application;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Constraint\Count;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
-use Illuminate\View\View;
-use PHPUnit\Framework\Constraint\Count;
-use URL;
+use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
+use Cartalyst\Sentinel\Laravel\Facades\Activation;
 
 class NhanVienController extends Controller
 {
@@ -117,7 +118,8 @@ class NhanVienController extends Controller
             'first_name' => $nv_hoten,
             'address' => $address,
             'phone' => $phone,
-            'pic' => $pic
+            'pic' => $pic,
+            'id_vp'=>$nv_vanphong,
         ], $activate);
 
         $role = Sentinel::findRoleById($nv_chucvu);
@@ -284,6 +286,7 @@ class NhanVienController extends Controller
                 'nv_phuong' => $nv_phuong,
                 'nv_ap' => $nv_ap,*/
                 'nv_vanphong' => $nv_vanphong,
+                'is_active' => $request->trangthai,
                 /*                'id_uchi' => $id_uchi,
                                 'name_uchi' => $name_uchi,*/
             ]);
@@ -291,7 +294,8 @@ class NhanVienController extends Controller
         $user = Sentinel::findById($id);
         Sentinel::update($user, [
             'phone' => $phone,
-            'address' => $address
+            'address' => $address,
+            'id_vp'=>$nv_vanphong,
         ]);
 
         if ($nv_chucvu != $role_user_current) {

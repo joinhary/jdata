@@ -58,9 +58,11 @@ Route::group([
         Route::get('sync-history', [SuuTraLogController::class, 'sync_history'])->name('syncHistory');
         Route::get('print/new', [SuuTraLogController::class, 'printNew'])->name('PrintSuuTraNew');
         Route::get('editSuutraSolr', [SuuTraController::class, 'editSuutraSolr'])->name('editSuutraSolr');
-        // Route::post('updateSuutraSolr/{id}', [SuuTraController::class, 'updateSuutraSolr'])->name('updateSuutraSolr');
-        // Accept both GET and POST
-        Route::match(['get', 'post'], 'updateSuutraSolr/{id}', [SuuTraController::class, 'updateSuutraSolr'])->name('updateSuutraSolr');
+       
+        Route::put(
+    'admin/suutra/solr/{id}',
+    [SuuTraController::class, 'updateSuutraSolr']
+)->name('suutra.solr.update');
 
         Route::post('check-trung-ho-so', [SolariumController_vp::class, 'XuLyTrungHoSo'])->name('checkTrungHoSo');
     

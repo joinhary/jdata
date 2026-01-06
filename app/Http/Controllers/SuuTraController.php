@@ -5821,14 +5821,19 @@ class SuuTraController extends Controller
     }
     public function editSuutraSolr(Request $request)
     {
+      // dd($request->all());
         $id = $request->id;
+        // dd($id);
         $suutra = SuutraModel::find($id);
+        // dd($suutra);
         $chinhanh = ChiNhanhModel::all();
         $nhanvien = User::all();
     return view('admin.suutra.editSuutraSolr', compact('suutra', 'chinhanh', 'nhanvien'));
     }
     public function updateSuutraSolr(Request $request, $id)
     {
+      // dd(1);
+      // dd('PUT OK', $id, $request->all());
         $suutra = SuuTraModel::find($id);
         if($suutra){
             $log = SolrEditLogModel::create([
